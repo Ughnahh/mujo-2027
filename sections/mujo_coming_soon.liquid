@@ -1,0 +1,855 @@
+{% assign cs_id = section.id | replace: '_', '' | replace: '-', '' | downcase %}
+
+{% style %}
+  .cs-{{ cs_id }} {
+    --cs-text: #1B1A18;
+    --cs-muted: #6B6862;
+    --cs-btn-bg: {{ section.settings.button_background }};
+    --cs-btn-text: #3D3344;
+    --cs-gap: {{ section.settings.layout_gap }}px;
+    --cs-title-size: {{ section.settings.title_size }}px;
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 80vh;
+    box-sizing: border-box;
+    padding: {{ section.settings.section_padding_top }}px {{ section.settings.section_padding_horizontal }}px {{ section.settings.section_padding_bottom }}px;
+    background: {{ section.settings.background_color }};
+    color: var(--cs-text);
+    overflow: hidden;
+    font-family: "Urbanist", -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  .cs-{{ cs_id }} [hidden] { display: none !important; }
+
+  .cs-{{ cs_id }} *,
+  .cs-{{ cs_id }} *::before,
+  .cs-{{ cs_id }} *::after { box-sizing: border-box; }
+
+  /* BACKGROUND VIDEO */
+  .cs-video-wrap-{{ cs_id }} {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: {{ section.settings.video_opacity | divided_by: 100.0 }};
+    pointer-events: none;
+  }
+
+  .cs-video-wrap-{{ cs_id }} video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* CONTENT STRUCTURE */
+  .cs-content-{{ cs_id }} {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  .cs-layout-{{ cs_id }} {
+    display: grid;
+    grid-template-columns: 1fr minmax(320px, 420px);
+    justify-content: center;
+    align-items: center;
+    gap: clamp(32px, 5vw, var(--cs-gap));
+    width: 100%;
+  }
+
+  .cs-layout-empty-{{ cs_id }} {
+    grid-template-columns: minmax(0, 480px);
+  }
+
+  /* MEDIA AREA */
+  .cs-media-{{ cs_id }} {
+    --cs-tile-size: clamp(180px, 22vw, 320px);
+    --cs-tile-gap: clamp(10px, 1.5vw, 20px);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 28px clamp(12px, 2vw, 24px);
+    min-width: 0;
+  }
+
+  .cs-item-{{ cs_id }} {
+    width: calc(var(--cs-tiles) * var(--cs-tile-size) + (var(--cs-tiles) - 1) * var(--cs-tile-gap));
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .cs-tiles-{{ cs_id }} {
+    display: grid;
+    grid-template-columns: repeat(var(--cs-tiles), minmax(0, 1fr));
+    gap: var(--cs-tile-gap);
+  }
+
+  /* TILE ELEMENTS */
+  .cs-tile-{{ cs_id }} {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: 6px;
+    background: #F1EEE8;
+  }
+
+  .cs-tile-{{ cs_id }} img,
+  .cs-tile-{{ cs_id }} svg,
+  .cs-tile-{{ cs_id }} video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cs-tile-{{ cs_id }} .cs-hover-image {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  @media (hover: hover) {
+    .cs-tile-image-{{ cs_id }}:hover .cs-hover-image {
+      opacity: 1;
+    }
+  }
+
+  .cs-item-title-{{ cs_id }} {
+    margin: 12px 0 0;
+    color: var(--cs-text);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  .cs-item-description-{{ cs_id }} {
+    margin-top: 4px;
+    color: var(--cs-muted);
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  /* RIGHT INFORMATION */
+  .cs-info-{{ cs_id }} {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .cs-title-{{ cs_id }} {
+    margin: 0 0 16px;
+    color: var(--cs-text);
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: var(--cs-title-size);
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.15;
+  }
+
+  .cs-description-{{ cs_id }} {
+    margin: 0 auto;
+    max-width: 360px;
+    color: var(--cs-muted);
+    font-size: {{ section.settings.description_size }}px;
+    line-height: 1.65;
+  }
+
+  /* COUNTDOWN */
+  .cs-countdown-{{ cs_id }} {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 28px 0;
+  }
+
+  .cs-countdown-item-{{ cs_id }} {
+    min-width: 64px;
+    padding: 0 12px;
+  }
+
+  .cs-countdown-item-{{ cs_id }} + .cs-countdown-item-{{ cs_id }} {
+    border-left: 1px solid rgba(27, 26, 24, 0.15);
+  }
+
+  .cs-countdown-number-{{ cs_id }} {
+    display: block;
+    color: var(--cs-text);
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .cs-countdown-label-{{ cs_id }} {
+    display: block;
+    margin-top: 6px;
+    color: var(--cs-muted);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* NOTIFY */
+  .cs-notify-trigger-{{ cs_id }},
+  .cs-notify-button-{{ cs_id }} {
+    width: 100%;
+    min-height: 50px;
+    padding: 14px 24px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--cs-btn-bg);
+    color: var(--cs-btn-text);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .cs-notify-trigger-{{ cs_id }}:hover,
+  .cs-notify-button-{{ cs_id }}:hover {
+    filter: brightness(0.95);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .cs-notify-form-wrapper-{{ cs_id }} { margin-top: 12px; }
+
+  .cs-notify-form-{{ cs_id }} {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cs-notify-input-{{ cs_id }} {
+    width: 100%;
+    min-height: 50px;
+    padding: 14px 20px;
+    border: 1px solid rgba(27, 26, 24, 0.18);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(4px);
+    color: var(--cs-text);
+    font: inherit;
+    font-size: 14px;
+    text-align: center;
+    outline: none;
+  }
+
+  .cs-error-{{ cs_id }} {
+    margin-top: 8px;
+    color: #B3261E;
+    font-size: 12px;
+  }
+
+  .cs-success-{{ cs_id }} {
+    padding: 14px 22px;
+    color: var(--cs-text);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  /* RESPONSIVE */
+  @media screen and (max-width: 900px) {
+    .cs-{{ cs_id }} {
+      min-height: auto;
+    }
+
+    .cs-layout-{{ cs_id }},
+    .cs-layout-empty-{{ cs_id }} {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 40px;
+    }
+
+    .cs-info-{{ cs_id }} {
+      order: -1;
+      max-width: 480px;
+    }
+
+    .cs-media-{{ cs_id }} {
+      --cs-tile-size: clamp(140px, 40vw, 220px);
+    }
+  }
+{% endstyle %}
+
+<div class="cs-{{ cs_id }}" {{ section.shopify_attributes }}>
+  {% if section.settings.background_video != blank %}
+    <div class="cs-video-wrap-{{ cs_id }}">
+      {{
+        section.settings.background_video
+        | video_tag: image_size: '1100x', autoplay: true, loop: true, muted: true, controls: false, playsinline: true
+      }}
+    </div>
+  {% endif %}
+
+  {% liquid
+    assign enabled_count = 0
+    for n in (1..4)
+      assign count_key = 'item_' | append: n | append: '_enabled'
+      if section.settings[count_key]
+        assign enabled_count = enabled_count | plus: 1
+      endif
+    endfor
+  %}
+
+  <div class="cs-content-{{ cs_id }}">
+    <div class="cs-layout-{{ cs_id }}{% if enabled_count == 0 %} cs-layout-empty-{{ cs_id }}{% endif %}">
+      <!-- LEFT: MEDIA -->
+      {% if enabled_count > 0 %}
+        <div class="cs-media-{{ cs_id }}">
+          {% for i in (1..4) %}
+            {% liquid
+              assign enabled_key = 'item_' | append: i | append: '_enabled'
+              assign image_key = 'item_' | append: i | append: '_image'
+              assign hover_image_key = 'item_' | append: i | append: '_hover_image'
+              assign video_key = 'item_' | append: i | append: '_video'
+              assign title_key = 'item_' | append: i | append: '_title'
+              assign description_key = 'item_' | append: i | append: '_description'
+
+              assign enabled = section.settings[enabled_key]
+              assign image = section.settings[image_key]
+              assign hover_image = section.settings[hover_image_key]
+              assign item_video = section.settings[video_key]
+              assign item_title = section.settings[title_key]
+              assign item_description = section.settings[description_key]
+
+              assign has_video = false
+              if item_video != blank
+                assign has_video = true
+              endif
+
+              assign show_image_tile = false
+              if image != blank or hover_image != blank or has_video == false
+                assign show_image_tile = true
+              endif
+
+              assign tile_count = 0
+              if show_image_tile
+                assign tile_count = tile_count | plus: 1
+              endif
+              if has_video
+                assign tile_count = tile_count | plus: 1
+              endif
+            %}
+
+            {% if enabled %}
+              <div
+                class="cs-item-{{ cs_id }}"
+                data-tiles="{{ tile_count }}"
+                style="--cs-tiles: {{ tile_count }};"
+              >
+                <div class="cs-tiles-{{ cs_id }}">
+                  {% if show_image_tile %}
+                    <div class="cs-tile-{{ cs_id }} cs-tile-image-{{ cs_id }}">
+                      {% if image != blank %}
+                        {{
+                          image
+                          | image_url: width: 600
+                          | image_tag: loading: 'lazy', widths: '300, 450, 600', sizes: '(min-width: 901px) 25vw, 45vw'
+                        }}
+                      {% else %}
+                        {{ 'product-1' | placeholder_svg_tag }}
+                      {% endif %}
+
+                      {% if hover_image != blank %}
+                        {{
+                          hover_image
+                          | image_url: width: 600
+                          | image_tag:
+                            loading: 'lazy',
+                            widths: '300, 450, 600',
+                            sizes: '(min-width: 901px) 25vw, 45vw',
+                            class: 'cs-hover-image'
+                        }}
+                      {% endif %}
+                    </div>
+                  {% endif %}
+
+                  {% if has_video %}
+                    <div class="cs-tile-{{ cs_id }} cs-tile-video-{{ cs_id }}">
+                      {{
+                        item_video
+                        | video_tag:
+                          image_size: '600x',
+                          autoplay: true,
+                          loop: true,
+                          muted: true,
+                          controls: false,
+                          playsinline: true
+                      }}
+                    </div>
+                  {% endif %}
+                </div>
+
+                {% if item_title != blank %}
+                  <h3 class="cs-item-title-{{ cs_id }}">{{ item_title }}</h3>
+                {% endif %}
+
+                {% if item_description != blank %}
+                  <div class="cs-item-description-{{ cs_id }}">{{ item_description }}</div>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- RIGHT: COMING SOON INFO -->
+      <div class="cs-info-{{ cs_id }}">
+        {% if section.settings.title != blank %}
+          <h2 class="cs-title-{{ cs_id }}">{{ section.settings.title }}</h2>
+        {% endif %}
+
+        {% if section.settings.description != blank %}
+          <div class="cs-description-{{ cs_id }}">{{ section.settings.description }}</div>
+        {% endif %}
+
+        {% if section.settings.enable_countdown %}
+          <div
+            class="cs-countdown-{{ cs_id }}"
+            data-countdown-date="{{ section.settings.countdown_date }}"
+          >
+            <div class="cs-countdown-item-{{ cs_id }}">
+              <span class="cs-countdown-number-{{ cs_id }}" data-days>00</span>
+              <span class="cs-countdown-label-{{ cs_id }}">Days</span>
+            </div>
+            <div class="cs-countdown-item-{{ cs_id }}">
+              <span class="cs-countdown-number-{{ cs_id }}" data-hours>00</span>
+              <span class="cs-countdown-label-{{ cs_id }}">Hours</span>
+            </div>
+            <div class="cs-countdown-item-{{ cs_id }}">
+              <span class="cs-countdown-number-{{ cs_id }}" data-minutes>00</span>
+              <span class="cs-countdown-label-{{ cs_id }}">Minutes</span>
+            </div>
+            <div class="cs-countdown-item-{{ cs_id }}">
+              <span class="cs-countdown-number-{{ cs_id }}" data-seconds>00</span>
+              <span class="cs-countdown-label-{{ cs_id }}">Seconds</span>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- NOTIFY FORM -->
+        {% if section.settings.enable_notify %}
+          {% assign form_id = 'ComingSoonNotifyForm-' | append: cs_id %}
+          {% form 'customer', id: form_id %}
+            <input type="hidden" name="contact[tags]" value="newsletter,coming-soon">
+
+            <div
+              class="cs-notify-area-{{ cs_id }}"
+              data-has-errors="{% if form.errors %}true{% else %}false{% endif %}"
+            >
+              <button
+                type="button"
+                class="cs-notify-trigger-{{ cs_id }}"
+                aria-expanded="false"
+                aria-controls="{{ form_id }}-panel"
+              >
+                ♡ Notify me
+              </button>
+
+              <div
+                id="{{ form_id }}-panel"
+                class="cs-notify-form-wrapper-{{ cs_id }}"
+                hidden
+              >
+                <div class="cs-notify-form-{{ cs_id }}">
+                  <input
+                    id="{{ form_id }}-email"
+                    type="email"
+                    name="contact[email]"
+                    class="cs-notify-input-{{ cs_id }}"
+                    placeholder="{{ section.settings.email_placeholder }}"
+                    autocomplete="email"
+                    required
+                  >
+                  <button type="submit" class="cs-notify-button-{{ cs_id }}">Get Notified</button>
+                </div>
+
+                <div class="cs-error-{{ cs_id }}" role="alert" hidden>
+                  {% if form.errors %}{{ form.errors | default_errors }}{% endif %}
+                </div>
+              </div>
+
+              <div class="cs-success-{{ cs_id }}" role="status" hidden>♡ YOU’RE ON THE LIST</div>
+            </div>
+          {% endform %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var root = document.querySelector('.cs-{{ cs_id }}');
+    if (!root) return;
+
+    /* Notify me toggle */
+    var area = root.querySelector('.cs-notify-area-{{ cs_id }}');
+    var trigger = root.querySelector('.cs-notify-trigger-{{ cs_id }}');
+    var formWrapper = root.querySelector('.cs-notify-form-wrapper-{{ cs_id }}');
+    var successMessage = root.querySelector('.cs-success-{{ cs_id }}');
+    var errorBox = root.querySelector('.cs-error-{{ cs_id }}');
+    var form = root.querySelector('form');
+    var submitBtn = root.querySelector('.cs-notify-button-{{ cs_id }}');
+
+    if (area && trigger && formWrapper && form && successMessage && submitBtn) {
+      function openForm() {
+        trigger.hidden = true;
+        trigger.setAttribute('aria-expanded', 'true');
+        formWrapper.hidden = false;
+      }
+
+      trigger.addEventListener('click', function () {
+        openForm();
+        var input = formWrapper.querySelector('input[type="email"]');
+        if (input) {
+          setTimeout(function () {
+            input.focus();
+          }, 100);
+        }
+      });
+
+      form.addEventListener('submit', function () {
+        setTimeout(function () {
+          submitBtn.disabled = true;
+        }, 0);
+      });
+
+      var params = new URLSearchParams(window.location.search);
+      var justSubscribed = params.get('customer_posted') === 'true' && window.location.hash === '#' + form.id;
+
+      if (justSubscribed) {
+        trigger.hidden = true;
+        formWrapper.hidden = true;
+        successMessage.hidden = false;
+
+        params.delete('customer_posted');
+        var query = params.toString();
+        history.replaceState(null, '', window.location.pathname + (query ? '?' + query : ''));
+      } else if (area.getAttribute('data-has-errors') === 'true' && errorBox) {
+        openForm();
+        errorBox.hidden = false;
+      }
+    }
+
+    /* Countdown Logic */
+    var countdown = root.querySelector('[data-countdown-date]');
+    if (!countdown) return;
+
+    var target = new Date(countdown.getAttribute('data-countdown-date')).getTime();
+    var d = countdown.querySelector('[data-days]');
+    var h = countdown.querySelector('[data-hours]');
+    var m = countdown.querySelector('[data-minutes]');
+    var s = countdown.querySelector('[data-seconds]');
+    var timer;
+
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function tick() {
+      if (!document.body.contains(root)) {
+        clearInterval(timer);
+        return;
+      }
+      var diff = isNaN(target) ? 0 : Math.max(0, target - Date.now());
+      d.textContent = pad(Math.floor(diff / 86400000));
+      h.textContent = pad(Math.floor(diff / 3600000) % 24);
+      m.textContent = pad(Math.floor(diff / 60000) % 60);
+      s.textContent = pad(Math.floor(diff / 1000) % 60);
+      if (diff === 0) clearInterval(timer);
+    }
+
+    tick();
+    timer = setInterval(tick, 1000);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Coming Soon",
+  "settings": [
+    {
+      "type": "range",
+      "id": "section_padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "section_padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "section_padding_horizontal",
+      "label": "Side padding (left & right)",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "layout_gap",
+      "label": "Gap between items and info",
+      "min": 20,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#FAFAF7"
+    },
+    {
+      "type": "video",
+      "id": "background_video",
+      "label": "Background video (autoplays, muted)"
+    },
+    {
+      "type": "range",
+      "id": "video_opacity",
+      "label": "Video opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 20
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "COMING SOON"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "A new collection is on its way."
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "label": "Title size",
+      "min": 20,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "description_size",
+      "label": "Description size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_countdown",
+      "label": "Enable countdown",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "countdown_date",
+      "label": "Countdown date",
+      "info": "Format: YYYY-MM-DDTHH:MM:SS",
+      "default": "2026-12-31T23:59:59"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_notify",
+      "label": "Enable notify button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "email_placeholder",
+      "label": "Email placeholder",
+      "default": "Enter your email"
+    },
+    {
+      "type": "color",
+      "id": "button_background",
+      "label": "Button background",
+      "default": "#E8D4F5"
+    },
+    {
+      "type": "checkbox",
+      "id": "item_1_enabled",
+      "label": "Item 1 show",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "item_1_image",
+      "label": "Item 1 image",
+      "info": "Main image (square tile)."
+    },
+    {
+      "type": "image_picker",
+      "id": "item_1_hover_image",
+      "label": "Item 1 hover image",
+      "info": "Fades in over the main image on hover."
+    },
+    {
+      "type": "video",
+      "id": "item_1_video",
+      "label": "Item 1 video",
+      "info": "Optional. Shows as its own square tile beside the image."
+    },
+    {
+      "type": "text",
+      "id": "item_1_title",
+      "label": "Item 1 title"
+    },
+    {
+      "type": "textarea",
+      "id": "item_1_description",
+      "label": "Item 1 description"
+    },
+    {
+      "type": "checkbox",
+      "id": "item_2_enabled",
+      "label": "Item 2 show",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "item_2_image",
+      "label": "Item 2 image",
+      "info": "Main image (square tile)."
+    },
+    {
+      "type": "image_picker",
+      "id": "item_2_hover_image",
+      "label": "Item 2 hover image",
+      "info": "Fades in over the main image on hover."
+    },
+    {
+      "type": "video",
+      "id": "item_2_video",
+      "label": "Item 2 video",
+      "info": "Optional. Shows as its own square tile beside the image."
+    },
+    {
+      "type": "text",
+      "id": "item_2_title",
+      "label": "Item 2 title"
+    },
+    {
+      "type": "textarea",
+      "id": "item_2_description",
+      "label": "Item 2 description"
+    },
+    {
+      "type": "checkbox",
+      "id": "item_3_enabled",
+      "label": "Item 3 show",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "item_3_image",
+      "label": "Item 3 image",
+      "info": "Main image (square tile)."
+    },
+    {
+      "type": "image_picker",
+      "id": "item_3_hover_image",
+      "label": "Item 3 hover image",
+      "info": "Fades in over the main image on hover."
+    },
+    {
+      "type": "video",
+      "id": "item_3_video",
+      "label": "Item 3 video",
+      "info": "Optional. Shows as its own square tile beside the image."
+    },
+    {
+      "type": "text",
+      "id": "item_3_title",
+      "label": "Item 3 title"
+    },
+    {
+      "type": "textarea",
+      "id": "item_3_description",
+      "label": "Item 3 description"
+    },
+    {
+      "type": "checkbox",
+      "id": "item_4_enabled",
+      "label": "Item 4 show",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "item_4_image",
+      "label": "Item 4 image",
+      "info": "Main image (square tile)."
+    },
+    {
+      "type": "image_picker",
+      "id": "item_4_hover_image",
+      "label": "Item 4 hover image",
+      "info": "Fades in over the main image on hover."
+    },
+    {
+      "type": "video",
+      "id": "item_4_video",
+      "label": "Item 4 video",
+      "info": "Optional. Shows as its own square tile beside the image."
+    },
+    {
+      "type": "text",
+      "id": "item_4_title",
+      "label": "Item 4 title"
+    },
+    {
+      "type": "textarea",
+      "id": "item_4_description",
+      "label": "Item 4 description"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Coming Soon"
+    }
+  ]
+}
+{% endschema %}

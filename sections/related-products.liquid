@@ -1,0 +1,544 @@
+{{ 'section-related-products.css' | asset_url | stylesheet_tag }}
+
+<script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+
+<script>
+  if (!customElements.get('mujo-product-card')) {
+    class MujoProductCard extends HTMLElement {
+      connectedCallback() {
+        // Delegate from the custom element itself, and look up
+        // children lazily inside the handler (not here). During
+        // initial HTML parsing this element can be upgraded the
+        // instant its opening tag is seen, before its own children
+        // (swatches, image, price) have been parsed yet — querying
+        // for them here would silently find nothing.
+        this.addEventListener('click', (event) => {
+          const swatch = event.target.closest('.mujo-pc-swatch');
+          if (swatch && this.contains(swatch)) {
+            this.selectSwatch(swatch);
+          }
+        });
+
+        // The secondary hover image is shown via CSS :hover, which
+        // stays active while the mouse is over a swatch (since the
+        // swatch is inside the card). Without this, a swatch click
+        // would update the primary image's src correctly but it'd
+        // stay invisible (opacity: 0 from the hover rule) until the
+        // mouse actually left and re-entered the card. Clearing the
+        // inline override on mouseleave hands control back to the
+        // normal CSS hover behavior for the next hover.
+        this.addEventListener('mouseleave', () => {
+          this.clearImageOverride();
+        });
+      }
+
+      clearImageOverride() {
+        const primary = this.querySelector('.mujo-pc-image-primary');
+        const secondary = this.querySelector('.mujo-pc-image-secondary');
+        if (primary) primary.style.opacity = '';
+        if (secondary) secondary.style.opacity = '';
+      }
+
+      selectSwatch(swatch) {
+        const swatches = this.querySelectorAll('.mujo-pc-swatch');
+        const image = this.querySelector('.mujo-pc-image-primary');
+        const secondaryImage = this.querySelector('.mujo-pc-image-secondary');
+        const priceEl = this.querySelector('.mujo-pc-price');
+        const variantInput = this.querySelector('.mujo-pc-variant-id');
+        const addButton = this.querySelector('.mujo-pc-add-to-bag');
+
+        swatches.forEach((s) => {
+          const isSelected = s === swatch;
+          s.classList.toggle('is-selected', isSelected);
+          s.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+        });
+
+        const available = swatch.dataset.available === 'true';
+        const colorLabel = swatch.getAttribute('aria-label') || '';
+
+        if (image && swatch.dataset.image) {
+          image.src = swatch.dataset.image;
+          if (swatch.dataset.imageSrcset) {
+            image.srcset = swatch.dataset.imageSrcset;
+          }
+          image.style.opacity = '1';
+          if (secondaryImage) secondaryImage.style.opacity = '0';
+        }
+
+        if (variantInput) {
+          variantInput.value = swatch.dataset.variantId;
+        }
+
+        if (addButton) {
+          addButton.disabled = !available;
+          const baseLabel = available ? 'Add to Bag' : 'Sold out';
+          addButton.setAttribute('aria-label', baseLabel + (colorLabel ? ' — ' + colorLabel : ''));
+        }
+
+        if (priceEl) {
+          const price = swatch.dataset.price;
+          const comparePrice = swatch.dataset.comparePrice;
+          if (comparePrice) {
+            priceEl.innerHTML =
+              '<span class="mujo-pc-price-sale">' + price + '</span> ' +
+              '<s class="mujo-pc-price-compare">' + comparePrice + '</s>';
+          } else {
+            priceEl.innerHTML = '<span class="mujo-pc-price-regular">' + price + '</span>';
+          }
+        }
+      }
+    }
+    customElements.define('mujo-product-card', MujoProductCard);
+  }
+</script>
+
+{%- style -%}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital@1&family=Urbanist:wght@400;500;600&display=swap');
+
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .section-{{ section.id }}-padding .related-products__heading {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: #1B1A18;
+  }
+
+  .section-{{ section.id }}-padding .product-grid {
+    gap: 24px 14px;
+  }
+
+  .section-{{ section.id }}-padding .grid__item {
+    padding: 0;
+    background: transparent;
+  }
+  /* =========================================================
+   RELATED PRODUCTS — DESKTOP SINGLE ROW
+   ========================================================= */
+
+@media screen and (min-width: 750px) {
+
+  .section-{{ section.id }}-padding .product-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 24px 14px !important;
+  }
+
+  .section-{{ section.id }}-padding .product-grid > .grid__item {
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+  /* Unified editorial product card — identical to Best Sellers: full-
+     bleed photo, info overlaid on a light scrim, icon-only Add to
+     Cart revealed on hover. Scoped to this section only, so a change
+     to one never touches the other. */
+  .section-{{ section.id }}-padding .mujo-pc {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .section-{{ section.id }}-padding .mujo-pc-media {
+    position: relative;
+    overflow: hidden;
+    background-color: #E5E2D9;
+    aspect-ratio: 4 / 5;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-media-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    transition: opacity 0.4s ease;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-image-secondary {
+    opacity: 0;
+  }
+
+  .section-{{ section.id }}-padding .mujo-pc-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      to top,
+      rgba(250, 250, 247, 0.96) 0%,
+      rgba(250, 250, 247, 0.82) 30%,
+      rgba(250, 250, 247, 0) 62%
+    );
+    pointer-events: none;
+  }
+
+  .section-{{ section.id }}-padding .mujo-pc-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    background: #C9A7E8;
+    color: #1B1A18;
+    font-family: 'Urbanist', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 2px;
+  }
+
+  .section-{{ section.id }}-padding .mujo-pc-info {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    padding: 16px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-title {
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+    color: #1B1A18;
+    text-decoration: none;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-subtitle {
+    font-family: 'Urbanist', sans-serif;
+    font-size: 12px;
+    line-height: 1.1;
+    color: #6B6862;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-price {
+    font-family: 'Urbanist', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1B1A18;
+    margin-top: 2px;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-price-sale {
+    color: #1B1A18;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-price-compare {
+    color: #8A8579;
+    margin-left: 4px;
+  }
+
+  .section-{{ section.id }}-padding .mujo-pc-swatches {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-swatch {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border-radius: 50%;
+    position: relative;
+    border: 1.5px solid rgba(27, 26, 24, 0.25);
+    background-color: #E5E2D9;
+    cursor: pointer;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-swatch.is-selected::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 1.5px solid #1B1A18;
+    border-radius: 50%;
+  }
+
+  /* Add to Cart: small icon button anchored top-right of the image.
+     Revealed on hover on desktop; always visible on touch devices. */
+  .section-{{ section.id }}-padding .mujo-pc-add-to-bag-wrap {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 3;
+    margin: 0;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-form {
+    margin: 0;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-add-to-bag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-add-to-bag:hover {
+    transform: translateY(0) scale(1.08);
+  }
+  .section-{{ section.id }}-padding .mujo-pc-add-to-bag:disabled {
+    opacity: 0.35 !important;
+    cursor: default;
+  }
+  .section-{{ section.id }}-padding .mujo-pc-add-to-bag-icon {
+    display: flex;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+  }
+  .section-{{ section.id }}-padding .mujo-pc-add-to-bag .loading__spinner {
+    display: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .section-{{ section.id }}-padding .mujo-pc:hover .mujo-pc-add-to-bag {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .section-{{ section.id }}-padding .mujo-pc:hover .mujo-pc-image-primary {
+      opacity: 0;
+    }
+    .section-{{ section.id }}-padding .mujo-pc:hover .mujo-pc-image-secondary {
+      opacity: 1;
+    }
+  }
+  @media (hover: none) {
+    .section-{{ section.id }}-padding .mujo-pc-add-to-bag {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* =========================================================
+     RELATED PRODUCTS — MOBILE
+     Horizontal scroll track. mujo-pc cards are self-contained,
+     fixed-aspect-ratio tiles (the overlay info never changes the
+     card's box size), so — unlike Dawn's default card — no height-
+     equalizing flex chain is needed to keep cards aligned.
+     ========================================================= */
+
+  @media screen and (max-width: 749px) {
+    .section-{{ section.id }}-padding .product-grid {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      gap: 12px !important;
+
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      padding-bottom: 8px !important;
+
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .section-{{ section.id }}-padding .product-grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    .section-{{ section.id }}-padding .product-grid > .grid__item {
+      flex: 0 0 45% !important;
+      width: 45% !important;
+      max-width: 45% !important;
+      scroll-snap-align: start;
+    }
+
+    .section-{{ section.id }}-padding .mujo-pc-badge {
+      font-size: 9px;
+      padding: 4px 8px;
+    }
+    .section-{{ section.id }}-padding .mujo-pc-title {
+      font-size: 13px;
+    }
+    .section-{{ section.id }}-padding .mujo-pc-subtitle {
+      font-size: 11px;
+    }
+    .section-{{ section.id }}-padding .mujo-pc-price {
+      font-size: 12px;
+    }
+    .section-{{ section.id }}-padding .mujo-pc-swatch {
+      width: 14px;
+      height: 14px;
+    }
+    .section-{{ section.id }}-padding .mujo-pc-add-to-bag {
+      width: 48px;
+      height: 48px;
+    }
+    .section-{{ section.id }}-padding .mujo-pc-add-to-bag-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <product-recommendations
+    class="related-products page-width section-{{ section.id }}-padding isolate{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+    data-url="{{ routes.product_recommendations_url }}?limit={{ section.settings.products_to_show }}"
+    data-section-id="{{ section.id }}"
+    data-product-id="{{ product.id }}"
+  >
+    {% if recommendations.performed and recommendations.products_count > 0 %}
+      <h2 class="related-products__heading inline-richtext {{ section.settings.heading_size }}">
+        {{ section.settings.heading }}
+      </h2>
+      <ul
+        class="grid product-grid grid--{{ section.settings.columns_desktop }}-col-desktop grid--{{ section.settings.columns_mobile }}-col-tablet-down"
+        role="list"
+      >
+        {% for recommendation in recommendations.products %}
+          {%- assign lazy_load = false -%}
+          {%- if forloop.index > 2 -%}
+            {%- assign lazy_load = true -%}
+          {%- endif -%}
+          <li class="grid__item">
+            {% render 'mujo-product-card',
+              product: recommendation,
+              section_id: section.id,
+              lazy_load: lazy_load
+            %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </product-recommendations>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.related-products.name",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:sections.related-products.settings.paragraph__1.content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "t:sections.related-products.settings.paragraph__1.default",
+      "label": "t:sections.related-products.settings.heading.label"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "t:sections.all.heading_size.options__1.label"
+        },
+        {
+          "value": "h1",
+          "label": "t:sections.all.heading_size.options__2.label"
+        },
+        {
+          "value": "h0",
+          "label": "t:sections.all.heading_size.options__3.label"
+        },
+        {
+          "value": "hxl",
+          "label": "t:sections.all.heading_size.options__4.label"
+        },
+        {
+          "value": "hxxl",
+          "label": "t:sections.all.heading_size.options__5.label"
+        }
+      ],
+      "default": "h1",
+      "label": "t:sections.all.heading_size.label"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "default": 4,
+      "label": "t:sections.related-products.settings.products_to_show.label"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "default": 4,
+      "label": "t:sections.related-products.settings.columns_desktop.label"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "default": "2",
+      "label": "t:sections.related-products.settings.columns_mobile.label",
+      "options": [
+        {
+          "value": "1",
+          "label": "t:sections.related-products.settings.columns_mobile.options__1.label"
+        },
+        {
+          "value": "2",
+          "label": "t:sections.related-products.settings.columns_mobile.options__2.label"
+        }
+      ]
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "info": "t:sections.all.colors.has_cards_info",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 36
+    }
+  ]
+}
+{% endschema %}

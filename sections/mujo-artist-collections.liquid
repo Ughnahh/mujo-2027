@@ -1,0 +1,497 @@
+{%- comment -%}
+  MUJŌ CO. — Shop by Artist: one fixed-height rectangle on desktop,
+  split into a static image (left) and an internally vertically-
+  scrolling collection list (right) — the rectangle itself never
+  grows taller as more collections are added. Each of the 7 cards
+  takes one full "page" of that scrollable pane, with scroll-snap so
+  scrolling moves through them one at a time; the square (1:1) image
+  is centered and capped at a modest width within that page.
+
+  On mobile that same composition adapts rather than stacking: the
+  image becomes the section's own full background, the heading moves
+  to upper-center, and the collection cards sit over the image as a
+  fixed 2-column grid of square tiles.
+
+  Each item shows a product photo, the product name, and the
+  collection/artist name, and links straight to that collection. The
+  product shown is either the newest product in the collection or a
+  merchant-picked featured product, per block.
+
+  Self-contained: its own scoped styles/markup. Does not touch Best
+  Sellers, New In, Hero, Shop All, the header, or any other section.
+{%- endcomment -%}
+
+{%- style -%}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital@1&family=Urbanist:wght@400;500;600&display=swap');
+
+  .mujo-sba-{{ section.id }} {
+    position: relative;
+    background: #FAFAF7;
+  }
+
+  .mujo-sba-{{ section.id }} .mujo-sba-layout {
+    display: block;
+  }
+
+  /* Desktop: one fixed-height rectangle. Both columns share this
+     height — the image fills it, the collection list scrolls inside
+     it — so the section itself never grows as more collections are
+     added. */
+  @media screen and (min-width: 900px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-layout {
+      display: grid;
+      grid-template-columns: 50% 50%;
+      align-items: stretch;
+      height: 80vh;
+      max-height: 720px;
+    }
+  }
+
+  /* Left: image panel. Desktop: static, fills its half of the fixed-
+     height rectangle. Mobile: becomes the section's own background,
+     positioned relative to the section root (not the layout column)
+     so it spans the full height of the heading + card carousel. */
+  .mujo-sba-{{ section.id }} .mujo-sba-left {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #f3ecf4ff;
+    text-decoration: none;
+  }
+
+  /* Desktop: image stays ONLY inside the left column */
+  @media screen and (min-width: 900px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-left {
+      position: relative;
+      grid-column: 1;
+      grid-row: 1;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  /* Mobile: image becomes the full section background */
+  @media screen and (max-width: 899px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-left {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+  }
+
+  .mujo-sba-{{ section.id }} .mujo-sba-left img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mujo-sba-{{ section.id }} .mujo-sba-left-scrim {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    pointer-events: none;
+  }
+  @media screen and (min-width: 900px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-left-scrim {
+      background: transparent;
+    }
+  }
+
+  /* Desktop: heading centered on the image, both axes */
+  .mujo-sba-{{ section.id }} .mujo-sba-left-title {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 32px;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(24px, 2.6vw, 34px);
+    line-height: 1.2;
+    color: #000000ff;
+    margin: 0;
+  }
+  /*Right BG Color*/
+    .mujo-sba-{{ section.id }} .mujo-sba-right {
+    background: #f7f7fa;
+  }
+  @media screen and (max-width: 899px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-right {
+      background: transparent;
+    }
+  }
+  @media screen and (min-width: 900px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-right {
+      grid-column: 2;
+      grid-row: 1;
+      height: 100%;
+      overflow-y: auto;
+      padding: 32px;
+      scroll-snap-type: y mandatory;
+      scroll-padding-top: 40px;
+      box-sizing: border-box;
+    }
+  }
+
+  /* Right: on mobile, sits above the background image. On desktop,
+     it's the internally-scrolling half of the rectangle — the
+     collection list scrolls inside this pane, the rectangle itself
+     stays fixed height. */
+  .mujo-sba-{{ section.id }} .mujo-sba-right {
+    position: relative;
+    z-index: 1;
+    padding: 90px 16px 28px;
+  }
+  @media screen and (min-width: 900px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-right {
+      height: 100%;
+      overflow-y: auto;
+      padding: 32px;
+      scroll-snap-type: y mandatory;
+    }
+  }
+
+  /* Card sizing. Mobile: a fixed 2-up grid over the background
+     image. Desktop: each of the 7 cards takes one full "page" of the
+     scrollable right pane — scrolling snaps card-by-card, one at a
+     time, through the list; the square image+caption is centered and
+     capped at a modest width within that page so it reads as a
+     compact tile, not stretched edge-to-edge. */
+    .mujo-sba-{{ section.id }} .mujo-sba-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Desktop */
+  @media screen and (min-width: 900px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .mujo-sba-{{ section.id }} .mujo-sba-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      width: 68%;
+      margin: 0 auto;
+
+      height: auto;
+      min-height: 0;
+
+      padding: 14px 14px 20px;
+      box-sizing: border-box;
+
+      background: #FAFAF7;
+
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+  }
+
+  /* Mobile: horizontal swipe */
+  @media screen and (max-width: 899px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-list {
+      display: flex;
+      flex-direction: row;
+      gap: 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scroll-padding-left: 16px;
+      padding: 0 16px 12px;
+      margin: 0 -16px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .mujo-sba-{{ section.id }} .mujo-sba-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    .mujo-sba-{{ section.id }} .mujo-sba-item {
+      flex: 0 0 78%;
+      max-width: 78%;
+      scroll-snap-align: start;
+    }
+  }
+
+  .mujo-sba-{{ section.id }} .mujo-sba-item-media {
+    display: block;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background-color: #E5E2D9;
+  }
+  @media screen and (min-width: 900px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-item-media {
+      width: 100%;
+      max-width: none;
+    }
+  }
+  .mujo-sba-{{ section.id }} .mujo-sba-item-media img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  .mujo-sba-{{ section.id }} .mujo-sba-item:hover .mujo-sba-item-media img {
+    transform: scale(1.04);
+  }
+
+  .mujo-sba-{{ section.id }} .mujo-sba-item-caption {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding-top: 8px;
+    font-family: 'Urbanist', sans-serif;
+  }
+  @media screen and (min-width: 900px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-item-caption {
+      width: 100%;
+      max-width: none;
+    }
+  }
+  .mujo-sba-{{ section.id }} .mujo-sba-item-product {
+    font-size: 15px;
+    font-weight: 400;
+    color: #1B1A18;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mujo-sba-{{ section.id }} .mujo-sba-item-collection {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #1B1A18;
+  }
+    /* REMOVE LINK UNDERLINES */
+  .mujo-sba-{{ section.id }} .mujo-sba-item,
+  .mujo-sba-{{ section.id }} .mujo-sba-item:hover,
+  .mujo-sba-{{ section.id }} .mujo-sba-item-product,
+  .mujo-sba-{{ section.id }} .mujo-sba-item-collection {
+    text-decoration: none !important;
+  }
+
+  /* Mobile: heading moves to upper-center instead of centered, and
+     each card's caption gets a small solid backdrop so it stays
+     legible over whatever part of the background photo is behind it. */
+  @media screen and (max-width: 899px) {
+    .mujo-sba-{{ section.id }} .mujo-sba-left-title {
+      align-items: flex-start;
+      padding: 28px 20px 0;
+    }
+    
+  .mujo-sba-{{ section.id }} .mujo-sba-item {
+    width: min(78%, 360px);
+    flex: 0 0 min(78%, 360px);
+    min-width: 0;
+    max-width: 360px;
+    box-sizing: border-box;
+    text-decoration: none !important;
+
+    background: #FAFAF7;
+    padding: 10px 10px 18px;
+  }
+    .mujo-sba-{{ section.id }} .mujo-sba-item-product,
+    .mujo-sba-{{ section.id }} .mujo-sba-item-collection {
+      text-decoration: none !important;
+    }
+
+    .mujo-sba-{{ section.id }} .mujo-sba-item-media {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .mujo-sba-{{ section.id }} .mujo-sba-item-caption {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      background: rgba(250, 250, 247, 0.92);
+      padding:  8px 2px 0;
+    }
+
+    .mujo-sba-{{ section.id }} .mujo-sba-item-product {
+      font-size: 12px;
+    }
+
+    .mujo-sba-{{ section.id }} .mujo-sba-item-collection {
+      font-size: 10px;
+    }
+  }
+{%- endstyle -%}
+
+{%- liquid
+  assign artist_blocks = section.blocks | where: 'type', 'artist'
+-%}
+
+<div class="mujo-sba-{{ section.id }}">
+  <div class="mujo-sba-layout">
+    {%- capture left_content -%}
+      {%- if section.settings.image -%}
+        <img
+          src="{{ section.settings.image | image_url: width: 1400 }}"
+          srcset="{{ section.settings.image | image_url: width: 700 }} 700w, {{ section.settings.image | image_url: width: 1100 }} 1100w, {{ section.settings.image | image_url: width: 1400 }} 1400w"
+          sizes="(max-width: 899px) 100vw, 44vw"
+          loading="lazy"
+          alt="{{ section.settings.image.alt | default: section.settings.image_title | escape }}"
+          width="1400"
+          height="1750"
+        >
+      {%- endif -%}
+      <span class="mujo-sba-left-scrim" aria-hidden="true"></span>
+      {%- if section.settings.image_title != blank -%}
+        <h2 class="mujo-sba-left-title">{{ section.settings.image_title }}</h2>
+      {%- endif -%}
+    {%- endcapture -%}
+
+    {%- if section.settings.image_link != blank -%}
+      <a href="{{ section.settings.image_link }}" class="mujo-sba-left">
+        {{ left_content }}
+      </a>
+    {%- else -%}
+      <div class="mujo-sba-left">
+        {{ left_content }}
+      </div>
+    {%- endif -%}
+
+    <div class="mujo-sba-right">
+      {%- if artist_blocks.size > 0 -%}
+        <div class="mujo-sba-list">
+          {%- for block in artist_blocks -%}
+            {%- assign artist_collection = block.settings.collection -%}
+            {%- if artist_collection != blank -%}
+              {%- if block.settings.product_source == 'manual' and block.settings.featured_product -%}
+                {%- assign display_product = block.settings.featured_product -%}
+              {%- else -%}
+                {%- assign display_product = artist_collection.products | sort: 'created_at' | last -%}
+              {%- endif -%}
+
+              <a
+                href="{{ artist_collection.url | default: '#' }}"
+                class="mujo-sba-item"
+                {{ block.shopify_attributes }}
+              >
+                <span class="mujo-sba-item-media">
+                  {%- if display_product.featured_image -%}
+                    <img
+                      src="{{ display_product.featured_image | image_url: width: 900 }}"
+                      srcset="{{ display_product.featured_image | image_url: width: 500 }} 500w, {{ display_product.featured_image | image_url: width: 700 }} 700w, {{ display_product.featured_image | image_url: width: 900 }} 900w"
+                      sizes="(max-width: 899px) 46vw, 15vw"
+                      loading="lazy"
+                      alt=""
+                      width="900"
+                      height="900"
+                    >
+                  {%- endif -%}
+                </span>
+                <span class="mujo-sba-item-caption">
+                  <span class="mujo-sba-item-product">{{ display_product.title | default: 'Product' }}</span>
+                  <span class="mujo-sba-item-collection">{{ artist_collection.title | default: 'Collection' }}</span>
+                </span>
+              </a>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Shop by Artist",
+  "tag": "section",
+  "class": "section mujo-shop-by-artist-section",
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Left image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "image_title",
+      "label": "Title over image",
+      "default": "Explore By Artist Collection"
+    },
+    {
+      "type": "url",
+      "id": "image_link",
+      "label": "Link (optional)"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "artist",
+      "name": "Artist / Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        },
+        {
+          "type": "select",
+          "id": "product_source",
+          "label": "Product shown",
+          "default": "newest",
+          "options": [
+            { "value": "newest", "label": "Newest product in collection" },
+            { "value": "manual", "label": "Manually selected product" }
+          ]
+        },
+        {
+          "type": "product",
+          "id": "featured_product",
+          "label": "Featured product",
+          "info": "Only used when \"Product shown\" is set to manual"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Shop by Artist",
+      "blocks": [
+        { "type": "artist" },
+        { "type": "artist" },
+        { "type": "artist" },
+        { "type": "artist" },
+        { "type": "artist" },
+        { "type": "artist" },
+        { "type": "artist" }
+      ]
+    }
+  ]
+}
+{% endschema %}

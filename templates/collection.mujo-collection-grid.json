@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "main": {
+      "type": "mujo-collection-grid",
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}

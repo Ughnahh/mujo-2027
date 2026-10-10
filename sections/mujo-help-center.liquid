@@ -1,0 +1,775 @@
+{%- comment -%}
+  MUJŌ CO. — Help & Information
+  sections/mujo-help-center.liquid
+
+  Theme Editor structure (flat list, top to bottom):
+    Category: Our Materials
+      FAQ item
+      FAQ item
+    Category: Jewelry Care
+      FAQ item
+      ...
+  A FAQ item always belongs to the Category block ABOVE it.
+  Shopify sections can't nest blocks, so this is the cleanest editable structure.
+{%- endcomment -%}
+
+{%- liquid
+  assign has_categories = false
+  for block in section.blocks
+    if block.type == 'category'
+      assign has_categories = true
+      break
+    endif
+  endfor
+
+  case section.settings.heading_alignment
+    when 'left'
+      assign intro_margin = '14px auto 0 0'
+    when 'right'
+      assign intro_margin = '14px 0 0 auto'
+    else
+      assign intro_margin = '14px auto 0'
+  endcase
+-%}
+
+{%- style -%}
+  .mujo-help-{{ section.id }} {
+    --mh-text: {{ section.settings.text_color }};
+    --mh-muted: {{ section.settings.muted_text_color }};
+    --mh-line: {{ section.settings.divider_color }};
+    --mh-accent: {{ section.settings.accent_color }};
+    --mh-sticky: {{ section.settings.sticky_top_offset }};
+    --mh-heading-size: {{ section.settings.heading_size }}px;
+
+    {%- if section.settings.background_color != blank %}
+    background-color: {{ section.settings.background_color }};
+    {%- endif %}
+    box-sizing: border-box;
+    width: 100%;
+    padding: {{ section.settings.section_padding_top }}px {{ section.settings.section_padding_horizontal }}px {{ section.settings.section_padding_bottom }}px;
+    color: var(--mh-text);
+    font-family: "Urbanist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  .mujo-help-{{ section.id }} *,
+  .mujo-help-{{ section.id }} *::before,
+  .mujo-help-{{ section.id }} *::after {
+    box-sizing: border-box;
+  }
+
+  .mujo-help-{{ section.id }} .mh-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  .mujo-help-{{ section.id }} .mh-header {
+    margin: 0 0 72px;
+    text-align: {{ section.settings.heading_alignment }};
+  }
+
+  .mujo-help-{{ section.id }} .mh-heading {
+    margin: 0;
+    color: var(--mh-text);
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: var(--mh-heading-size);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+  }
+
+  .mujo-help-{{ section.id }} .mh-intro {
+    max-width: 460px;
+    margin: {{ intro_margin }};
+    color: var(--mh-muted);
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  /* LAYOUT: category list left, all FAQ content right */
+  .mujo-help-{{ section.id }} .mh-body {
+    display: grid;
+    grid-template-columns: minmax(140px, 200px) minmax(0, 1fr);
+    column-gap: clamp(24px, 4vw, 48px);
+    align-items: start;
+  }
+
+  /* LEFT: sticky plain-text category links */
+  .mujo-help-{{ section.id }} .mh-nav {
+    position: sticky;
+    top: calc(var(--mh-sticky) * 1px);
+    align-self: start;
+    max-height: calc(100vh - var(--mh-sticky) * 1px - 24px);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .mujo-help-{{ section.id }} .mh-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mujo-help-{{ section.id }} .mh-nav-list {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mujo-help-{{ section.id }} .mh-nav-list li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mujo-help-{{ section.id }} .mh-link {
+    display: inline-block;
+    padding: 9px 0 !important;
+    color: var(--mh-text) !important;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.4;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 6px;
+    transition: text-decoration-color 0.2s ease;
+  }
+
+  .mujo-help-{{ section.id }} .mh-link:hover {
+    text-decoration-color: var(--mh-line);
+  }
+
+  .mujo-help-{{ section.id }} .mh-link[aria-current="true"],
+  .mujo-help-{{ section.id }} .mh-link:focus-visible {
+    text-decoration-color: currentColor;
+  }
+
+  /* RIGHT: every category stacked */
+  .mujo-help-{{ section.id }} .mh-content {
+    min-width: 0;
+  }
+
+  .mujo-help-{{ section.id }} .mh-cat {
+    margin: 0 0 72px;
+    scroll-margin-top: calc(var(--mh-sticky) * 1px + 16px);
+  }
+
+  .mujo-help-{{ section.id }} .mh-cat:last-child {
+    margin-bottom: 0;
+  }
+
+  .mujo-help-{{ section.id }} .mh-cat:focus {
+    outline: none;
+  }
+
+  .mujo-help-{{ section.id }} .mh-cat-title {
+    margin: 0 0 22px;
+    color: var(--mh-text);
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 34px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  .mujo-help-{{ section.id }} .mh-items {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* FAQ ITEM: a plain row, separated only by a thin line */
+  .mujo-help-{{ section.id }} .mh-item {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--mh-line) !important;
+  }
+
+  .mujo-help-{{ section.id }} .mh-items > .mh-item:first-child {
+    border-top: 1px solid var(--mh-line) !important;
+  }
+
+  .mujo-help-{{ section.id }} .mh-q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    width: 100%;
+    margin: 0;
+    padding: 16px 0 !important;
+    color: var(--mh-text);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.55;
+    list-style: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+
+  .mujo-help-{{ section.id }} .mh-q::-webkit-details-marker {
+    display: none;
+  }
+
+  .mujo-help-{{ section.id }} .mh-q::marker {
+    content: "";
+  }
+
+  .mujo-help-{{ section.id }} .mh-q:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .mujo-help-{{ section.id }} .mh-item[open] > .mh-q {
+    color: var(--mh-accent);
+  }
+
+  /* + / − icon */
+  .mujo-help-{{ section.id }} .mh-icon {
+    position: relative;
+    flex: none;
+    width: 14px;
+    height: 14px;
+  }
+
+  .mujo-help-{{ section.id }} .mh-icon::before,
+  .mujo-help-{{ section.id }} .mh-icon::after {
+    content: "";
+    position: absolute;
+    background: var(--mh-text);
+    transition: transform 0.25s ease;
+  }
+
+  .mujo-help-{{ section.id }} .mh-icon::before {
+    top: 6.5px;
+    right: 0;
+    left: 0;
+    height: 1px;
+  }
+
+  .mujo-help-{{ section.id }} .mh-icon::after {
+    top: 0;
+    bottom: 0;
+    left: 6.5px;
+    width: 1px;
+  }
+
+  .mujo-help-{{ section.id }} .mh-item[open] .mh-icon::after {
+    transform: scaleY(0);
+  }
+
+  /* ANSWER */
+  .mujo-help-{{ section.id }} .mh-a {
+    max-width: 760px;
+    padding: 2px 40px 22px 0;
+    color: var(--mh-text);
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  .mujo-help-{{ section.id }} .mh-a > :first-child {
+    margin-top: 0;
+  }
+
+  .mujo-help-{{ section.id }} .mh-a > :last-child {
+    margin-bottom: 0;
+  }
+
+  .mujo-help-{{ section.id }} .mh-a a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .mujo-help-{{ section.id }} .mh-item[open] .mh-a {
+    animation: mh-reveal-{{ section.id }} 0.3s ease;
+  }
+
+  @keyframes mh-reveal-{{ section.id }} {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* EMPTY STATE (theme editor only) */
+  .mujo-help-{{ section.id }} .mh-empty {
+    color: var(--mh-muted);
+    font-size: 15px;
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  /* MOBILE: no 30/70 split. Scrollable category row, then FAQ underneath. */
+  @media screen and (max-width: 749px) {
+    .mujo-help-{{ section.id }} .mh-header {
+      margin-bottom: 40px;
+    }
+
+    .mujo-help-{{ section.id }} .mh-heading {
+      font-size: min(var(--mh-heading-size), 11vw);
+    }
+
+    .mujo-help-{{ section.id }} .mh-body {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 32px;
+    }
+
+    .mujo-help-{{ section.id }} .mh-nav {
+      position: static;
+      max-height: none;
+      overflow: visible;
+    }
+
+    .mujo-help-{{ section.id }} .mh-nav-list {
+      flex-direction: row;
+      gap: 24px;
+      padding-bottom: 2px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .mujo-help-{{ section.id }} .mh-nav-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    .mujo-help-{{ section.id }} .mh-nav-list li {
+      flex: none;
+    }
+
+    .mujo-help-{{ section.id }} .mh-link {
+      padding: 12px 0 !important;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .mujo-help-{{ section.id }} .mh-cat {
+      margin-bottom: 56px;
+    }
+
+    .mujo-help-{{ section.id }} .mh-cat-title {
+      font-size: 28px;
+    }
+
+    .mujo-help-{{ section.id }} .mh-a {
+      padding-right: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mujo-help-{{ section.id }} .mh-item[open] .mh-a {
+      animation: none;
+    }
+
+    .mujo-help-{{ section.id }} .mh-icon::before,
+    .mujo-help-{{ section.id }} .mh-icon::after,
+    .mujo-help-{{ section.id }} .mh-link,
+    .mujo-help-{{ section.id }} .mh-q {
+      transition: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html:has(.mujo-help-{{ section.id }}) {
+      scroll-behavior: smooth;
+    }
+  }
+{%- endstyle -%}
+
+<div id="MujoHelp-{{ section.id }}" class="mujo-help-{{ section.id }}">
+  <div class="mh-inner">
+
+    {%- if section.settings.heading != blank or section.settings.intro != blank -%}
+      <header class="mh-header">
+        {%- if section.settings.heading != blank -%}
+          <h2 class="mh-heading">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+        {%- if section.settings.intro != blank -%}
+          <p class="mh-intro">{{ section.settings.intro | escape }}</p>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if has_categories -%}
+      <div class="mh-body">
+
+        <nav class="mh-nav" aria-label="Help categories">
+          <ul class="mh-nav-list">
+            {%- assign first_link = true -%}
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'category' -%}
+                <li>
+                  <a
+                    class="mh-link"
+                    href="#{{ section.id }}-{{ block.id }}"
+                    data-mh-link
+                    {% if first_link %}aria-current="true"{% endif %}
+                  >
+                    {{- block.settings.title | default: 'Category' | escape -}}
+                  </a>
+                </li>
+                {%- assign first_link = false -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+        </nav>
+
+        <div class="mh-content">
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'category' -%}
+              <section
+                class="mh-cat"
+                id="{{ section.id }}-{{ block.id }}"
+                aria-labelledby="{{ section.id }}-{{ block.id }}-title"
+                tabindex="-1"
+                {{ block.shopify_attributes }}
+              >
+                <h3 class="mh-cat-title" id="{{ section.id }}-{{ block.id }}-title">
+                  {{- block.settings.title | default: 'Category' | escape -}}
+                </h3>
+                
+                <div class="mh-items">
+                  {%- assign current_index = forloop.index0 -%}
+                  {%- for faq_block in section.blocks offset: current_index -%}
+                    {%- if faq_block.type == 'category' and forloop.index0 > current_index -%}
+                      {%- break -%}
+                    {%- elsif faq_block.type == 'faq' -%}
+                      <details class="mh-item" {{ faq_block.shopify_attributes }}>
+                        <summary class="mh-q">
+                          <span class="mh-q-text">{{ faq_block.settings.heading | default: 'Question' | escape }}</span>
+                          <span class="mh-icon" aria-hidden="true"></span>
+                        </summary>
+                        <div class="mh-a">{{ faq_block.settings.answer }}</div>
+                      </details>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+              </section>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<script>
+  (function () {
+    var root = document.getElementById('MujoHelp-{{ section.id }}');
+    if (!root) return;
+
+    var links = Array.prototype.slice.call(root.querySelectorAll('[data-mh-link]'));
+    if (!links.length) return;
+
+    var targets = links.map(function (link) {
+      return document.getElementById(link.getAttribute('href').slice(1));
+    });
+    var navList = root.querySelector('.mh-nav-list');
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var desktop = window.matchMedia('(min-width: 750px)');
+    var current = 0;
+    var locked = -1;
+    var ticking = false;
+
+    function readingLine() {
+      var sticky = parseInt(getComputedStyle(root).getPropertyValue('--mh-sticky'), 10) || 0;
+      return sticky + 80;
+    }
+
+    function setActive(index) {
+      if (index === current && links[index].getAttribute('aria-current') === 'true') return;
+      current = index;
+      links.forEach(function (link, i) {
+        if (i === index) {
+          link.setAttribute('aria-current', 'true');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+
+      /* On mobile, keep the active category visible in the swipe row */
+      if (!desktop.matches && navList && navList.scrollWidth > navList.clientWidth) {
+        navList.scrollTo({
+          left: links[index].offsetLeft - (navList.clientWidth - links[index].offsetWidth) / 2,
+          behavior: reduceMotion.matches ? 'auto' : 'smooth'
+        });
+      }
+    }
+
+    function update() {
+      ticking = false;
+
+      if (!root.isConnected) {
+        window.removeEventListener('scroll', onScroll);
+        window.removeEventListener('resize', onScroll);
+        return;
+      }
+      if (locked > -1) return;
+
+      var line = readingLine();
+      var index = 0;
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i] && targets[i].getBoundingClientRect().top <= line) index = i;
+      }
+
+      var last = targets.length - 1;
+      var atBottom = window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 4;
+      if (atBottom && targets[last] && targets[last].getBoundingClientRect().top < window.innerHeight * 0.75) {
+        index = last;
+      }
+
+      setActive(index);
+    }
+
+    function onScroll() {
+      if (!ticking) {
+        ticking = true;
+        window.requestAnimationFrame(update);
+      }
+    }
+
+    /* Click: smooth-scroll to the section and highlight it right away */
+    links.forEach(function (link, i) {
+      link.addEventListener('click', function (event) {
+        var target = targets[i];
+        if (!target) return;
+        event.preventDefault();
+        locked = i;
+        setActive(i);
+        target.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+        target.focus({ preventScroll: true });
+      });
+    });
+
+    /* Hand control back to scroll position once the visitor scrolls themselves */
+    function unlock() { locked = -1; }
+    window.addEventListener('wheel', unlock, { passive: true });
+    window.addEventListener('touchmove', unlock, { passive: true });
+    window.addEventListener('keydown', unlock);
+    window.addEventListener('pointerdown', unlock);
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+
+    /* Theme Editor: open a FAQ item while it is selected */
+    root.addEventListener('shopify:block:select', function (event) {
+      if (event.target && event.target.tagName === 'DETAILS') event.target.open = true;
+    });
+    root.addEventListener('shopify:block:deselect', function (event) {
+      if (event.target && event.target.tagName === 'DETAILS') event.target.open = false;
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "MUJŌ Help Center",
+  "tag": "section",
+  "class": "mujo-help-center",
+  "max_blocks": 50,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Add a Category block, then add FAQ blocks under it. Each FAQ belongs to the Category above it. Drag blocks to reorder."
+    },
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Help & Information"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro text",
+      "default": "Everything you need to know about our pieces, orders and care."
+    },
+    {
+      "type": "select",
+      "id": "heading_alignment",
+      "label": "Heading alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size",
+      "min": 28,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "default": 46
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#1B1A18"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Intro text",
+      "default": "#6B6862"
+    },
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "Divider lines",
+      "default": "#E5E5E5"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Open question",
+      "default": "#9B5DB0"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background (optional)",
+      "info": "Leave empty to use the page background."
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "sticky_top_offset",
+      "label": "Category list distance from top",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "default": 100,
+      "info": "Set this to your header height so the sticky list and jump-to scrolling clear it."
+    },
+    {
+      "type": "range",
+      "id": "section_padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "section_padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "section_padding_horizontal",
+      "label": "Side padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Category name",
+          "default": "Category"
+        }
+      ]
+    },
+    {
+      "type": "faq",
+      "name": "FAQ item",
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "Shows under the Category block above it."
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Question",
+          "default": "New question"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>Add your answer here.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "MUJŌ Help Center",
+      "blocks": [
+        { "type": "category", "settings": { "title": "Our Materials" } },
+        { "type": "faq", "settings": { "heading": "What materials do you use?", "answer": "<p>Add your answer here.</p>" } },
+        { "type": "faq", "settings": { "heading": "Are your pieces hypoallergenic?", "answer": "<p>Add your answer here.</p>" } },
+        { "type": "faq", "settings": { "heading": "How should I care for my jewelry?", "answer": "<p>Add your answer here.</p>" } },
+
+        { "type": "category", "settings": { "title": "Jewelry Care" } },
+        { "type": "faq", "settings": { "heading": "Can I wear my jewelry in water?", "answer": "<p>Add your answer here.</p>" } },
+        { "type": "faq", "settings": { "heading": "How should I clean it?", "answer": "<p>Add your answer here.</p>" } },
+        { "type": "faq", "settings": { "heading": "How should I store it?", "answer": "<p>Add your answer here.</p>" } },
+
+        { "type": "category", "settings": { "title": "Account" } },
+        { "type": "faq", "settings": { "heading": "How do I create an account?", "answer": "<p>Add your answer here.</p>" } },
+        { "type": "faq", "settings": { "heading": "What do I do if I forget my password?", "answer": "<p>Add your answer here.</p>" } },
+
+        { "type": "category", "settings": { "title": "Ordering" } },
+        { "type": "faq", "settings": { "heading": "How do I place an order?", "answer": "<p>Add your answer here.</p>" } },
+        { "type": "faq", "settings": { "heading": "Can I change or cancel my order?", "answer": "<p>Add your answer here.</p>" } },
+
+        { "type": "category", "settings": { "title": "Payments" } },
+        { "type": "faq", "settings": { "heading": "What payment methods do you accept?", "answer": "<p>Add your answer here.</p>" } },
+        { "type": "faq", "settings": { "heading": "Can I pay using GCash?", "answer": "<p>Add your answer here.</p>" } },
+        { "type": "faq", "settings": { "heading": "Do you accept credit/debit cards?", "answer": "<p>Add your answer here.</p>" } },
+        { "type": "faq", "settings": { "heading": "Are international payments accepted?", "answer": "<p>Add your answer here.</p>" } },
+
+        { "type": "category", "settings": { "title": "Shipping" } },
+        { "type": "faq", "settings": { "heading": "How long does shipping take?", "answer": "<p>Add your answer here.</p>" } },
+        { "type": "faq", "settings": { "heading": "How can I track my order?", "answer": "<p>Add your answer here.</p>" } },
+
+        { "type": "category", "settings": { "title": "Returns & Exchange" } },
+        { "type": "faq", "settings": { "heading": "What is your return policy?", "answer": "<p>Add your answer here.</p>" } },
+        { "type": "faq", "settings": { "heading": "How do I request an exchange?", "answer": "<p>Add your answer here.</p>" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
